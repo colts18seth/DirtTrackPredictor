@@ -1,0 +1,91 @@
+# =========================================
+# Unity Generated
+# =========================================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+UserSettings/
+
+# Cache
+/[Aa]ssets/AssetStoreTools*
+
+# =========================================
+# OS Specific
+# =========================================
+# Windows
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# =========================================
+# IDE Specific
+# =========================================
+# Visual Studio
+.vs/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# =========================================
+# Builds
+# =========================================
+*.apk
+*.aab
+*.xcodeproj
+*.xcworkspace
+*.app
+*.ipa
+*.exe
+*.dll
+*.pdb
+*.mdb
+*.so
+
+# =========================================
+# Auto-generated meta files
+# =========================================
+sysinfo.txt
+
+# =========================================
+# Unity Cloud Build
+# =========================================
+/[Uu]serSettings/
+
+# =========================================
+# Addressables
+# =========================================
+/[Aa]ssets/AddressableAssetsData/*
+
+# =========================================
+# Collaborate
+# =========================================
+/[Aa]ssets/UnityCollaborate*
+
+# =========================================
+# Logs
+# =========================================
+*.log
+
+.vsconfig
