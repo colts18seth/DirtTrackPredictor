@@ -2,18 +2,19 @@ using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
-    public GameObject setupCanvas;
-    public GameObject racesCanvas;
+    public GameObject[] canvases; // Assign all canvases in the Inspector
 
-    public void ShowRacesPage()
+    private void DeactivateAll()
     {
-        setupCanvas.SetActive(false);
-        racesCanvas.SetActive(true);
+        foreach (GameObject canvas in canvases)
+        {
+            canvas.SetActive(false);
+        }
     }
 
-    public void ShowSetupPage()
+    public void ShowPage(GameObject targetCanvas)
     {
-        setupCanvas.SetActive(true);
-        racesCanvas.SetActive(false);
+        DeactivateAll();
+        targetCanvas.SetActive(true);
     }
 }

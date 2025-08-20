@@ -6,7 +6,9 @@ public class RaceListUI : MonoBehaviour
 {
     public GameObject raceButtonPrefab;   // assign prefab in Inspector
     public Transform raceListParent;      // the panel with Vertical Layout Group
-    public int numberOfRaces = 0;         // set from setup screen
+    //public int numberOfRaces = 0;         // set from setup screen
+    public TMP_InputField inputField; // assign in Inspector
+    private int numberValue;
 
     public void GenerateRaceButtons()
     {
@@ -17,22 +19,29 @@ public class RaceListUI : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        // create new buttons
-        for (int i = 1; i <= numberOfRaces; i++)
+        if (int.TryParse(inputField.text, out numberValue))
         {
-            GameObject newButton = Instantiate(raceButtonPrefab, raceListParent);
-
-            // set button text
-            TMP_Text label = newButton.GetComponentInChildren<TMP_Text>();
-            if (label != null)
+            // create new buttons
+            for (int i = 1; i <= numberValue; i++)
             {
-                label.text = "Race Night - " + i;
-                //label.color = Color.white;
-            }
+                GameObject newButton = Instantiate(raceButtonPrefab, raceListParent);
 
-            // add click listener
-            int raceIndex = i;  // important: capture loop variable
-            newButton.GetComponent<Button>().onClick.AddListener(() => OnRaceSelected(raceIndex));
+                // set button text
+                TMP_Text label = newButton.GetComponentInChildren<TMP_Text>();
+                if (label != null)
+                {
+                    label.text = "Race Night - " + i;
+                    //label.color = Color.white;
+                }
+
+                // add click listener
+                int raceIndex = i;  // important: capture loop variable
+                newButton.GetComponent<Button>().onClick.AddListener(() => OnRaceSelected(raceIndex));
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Invalid number entered!");
         }
     }
 
