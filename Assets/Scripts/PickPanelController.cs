@@ -67,6 +67,7 @@ public class PickPanelController : MonoBehaviour
             GameManager.I.SavePicksForSelected(player, currentSelection);
 
         GameManager.I.Save();
+        Debug.Log($"Saved picks for {player}: {string.Join(", ", currentSelection)}");
         ui.Show(PanelId.Player_Panel);
     }
 }
