@@ -41,12 +41,12 @@ public class UIManager : MonoBehaviour
 
     private void Show(PanelId id, bool pushHistory)
     {
-        Debug.Log($"UIManager: Showing Current {Current}");
-        Debug.Log($"UIManager: Showing panel {id}");
-        if (map.ContainsKey(id))
-            Debug.Log($"Found panel GameObject: {map[id].name}, active: {map[id].activeSelf}");
-        else
-            Debug.LogWarning($"PanelId {id} not mapped in UIManager");
+        //Debug.Log($"UIManager: Showing Current {Current}");
+        //Debug.Log($"UIManager: Showing panel {id}");
+        //if (map.ContainsKey(id))
+        //    Debug.Log($"Found panel GameObject: {map[id].name}, active: {map[id].activeSelf}");
+        //else
+        //    Debug.LogWarning($"PanelId {id} not mapped in UIManager");
 
         if (!map.ContainsKey(id)) { Debug.LogWarning($"No panel for {id}"); return; }
 
