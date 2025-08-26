@@ -1,181 +1,102 @@
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public enum GameMode
+    public static GameManager I { get; private set; }
+
+    public EventState State { get; private set; } = new();
+
+    private void Awake()
     {
-        SinglePick,   // 1 pick per race
-        TopThree      // Top 3 picks per race
+        if (I != null && I != this) { Destroy(gameObject); return; }
+        I = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    [Serializable]
-    public class Player
+    // New event (called from Setup after user inputs)
+    public void CreateNewEvent(string eventName, int nights, List<string> playerNames, GameMode mode)
     {
-        public string playerName;
-        public Dictionary<int, int> totalPointsPerNight = new(); // nightIndex -> points
+        State = new EventState
+        {
+            eventName = eventName,
+            raceNightCount = nights,
+            mode = mode
+        };
+        foreach (var n in playerNames) State.players.Add(new Player { name = n });
+
+        State.nights = new List<RaceNight>();
+        for (int i = 0; i < nights; i++)
+            State.nights.Add(new RaceNight { nightIndex = i + 1 });
+
+        State.currentNightIndex = 0;
+        State.selectedRaceIndex = null;
+        State.selectedPlayerName = null;
     }
 
-    [Serializable]
-    public class RacePick
+    public void SetCurrentNight(int nightIndex0Based)
     {
-        public string racerName;
-        public int position; // 1 = first, 2 = second, 3 = third
+        State.currentNightIndex = Mathf.Clamp(nightIndex0Based, 0, State.nights.Count - 1);
+        State.selectedRaceIndex = null;
+        State.selectedPlayerName = null;
     }
 
-    [Serializable]
-    public class RaceResult
+    public Race AddRaceToCurrentNight(RaceType type, string displayName)
     {
-        public string raceName;
-        public List<RacePick> picks = new(); // Player's picks
-        public List<string> actualTopThree = new(); // Actual race finishers
-        public Dictionary<string, int> pointsAwarded = new(); // playerName -> points
+        var night = State.nights[State.currentNightIndex];
+        var race = new Race { type = type, displayName = displayName };
+        night.races.Add(race);
+        State.selectedRaceIndex = night.races.Count - 1;
+        return race;
     }
 
-    [Serializable]
-    public class NightData
+    public Race? GetSelectedRace()
     {
-        public int nightIndex;
-        public List<RaceResult> races = new();
+        var idx = State.selectedRaceIndex;
+        if (idx == null) return null;
+        var night = State.nights[State.currentNightIndex];
+        if (idx.Value < 0 || idx.Value >= night.races.Count) return null;
+        return night.races[idx.Value];
     }
 
-    public class GameSessionData : MonoBehaviour
+    public void SelectRace(int raceIndex)
     {
-        public static GameSessionData Instance; // Singleton
+        var night = State.nights[State.currentNightIndex];
+        State.selectedRaceIndex = Mathf.Clamp(raceIndex, 0, night.races.Count - 1);
+    }
 
-        [Header("Game Setup")]
-        public int totalNights;
-        public List<Player> players = new();
-        public GameMode selectedGameMode;
+    public void SelectPlayer(string playerName) => State.selectedPlayerName = playerName;
 
-        [Header("Gameplay Data")]
-        public List<NightData> nights = new();
+    public void SavePicksForSelected(string playerName, List<int> positions)
+    {
+        var race = GetSelectedRace();
+        if (race == null) return;
+        race.picksByPlayer[playerName] = new List<int>(positions);
+    }
 
-        private void Awake()
-        {
-            if (Instance != null && Instance != this)
-                Destroy(gameObject);
-            else
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-        }
+    // Simple persistence for Resume (swap to proper save later)
+    private const string SaveKey = "RacePredictor_EventState";
 
-        // === SETUP METHODS ===
-        public void InitializeSession(int nightsCount, List<string> playerNames, GameMode mode)
-        {
-            totalNights = nightsCount;
-            selectedGameMode = mode;
+    public void Save()
+    {
+        var json = JsonUtility.ToJson(State);
+        PlayerPrefs.SetString(SaveKey, json);
+        PlayerPrefs.Save();
+    }
 
-            players.Clear();
-            foreach (var name in playerNames)
-                players.Add(new Player { playerName = name });
+    public bool Load()
+    {
+        if (!PlayerPrefs.HasKey(SaveKey)) return false;
+        var json = PlayerPrefs.GetString(SaveKey);
+        var loaded = JsonUtility.FromJson<EventState>(json);
+        if (loaded == null) return false;
+        State = loaded;
+        return true;
+    }
 
-            nights.Clear();
-            for (int i = 0; i < nightsCount; i++)
-                nights.Add(new NightData { nightIndex = i });
-        }
-
-        public void AddRace(int nightIndex, string raceName)
-        {
-            if (nightIndex < 0 || nightIndex >= nights.Count) return;
-            nights[nightIndex].races.Add(new RaceResult { raceName = raceName });
-        }
-
-        // === GAMEPLAY METHODS ===
-        public void RecordPick(int nightIndex, int raceIndex, string playerName, List<RacePick> picks)
-        {
-            var race = GetRace(nightIndex, raceIndex);
-            if (race == null) return;
-
-            // Overwrite existing picks for this player
-            race.picks.RemoveAll(p => p.racerName == playerName);
-            race.picks.AddRange(picks);
-        }
-
-        public void SetActualResults(int nightIndex, int raceIndex, List<string> results)
-        {
-            var race = GetRace(nightIndex, raceIndex);
-            if (race == null) return;
-
-            race.actualTopThree = new List<string>(results);
-            CalculatePointsForRace(race, raceIndex);
-        }
-
-        private void CalculatePointsForRace(RaceResult race, int raceIndex)
-        {
-            race.pointsAwarded.Clear();
-
-            foreach (var pick in race.picks)
-            {
-                int points = CalculatePoints(selectedGameMode, pick, race.actualTopThree);
-                if (!race.pointsAwarded.ContainsKey(pick.racerName))
-                    race.pointsAwarded[pick.racerName] = 0;
-
-                race.pointsAwarded[pick.racerName] += points;
-            }
-
-            // Also update player's night totals
-            foreach (var kvp in race.pointsAwarded)
-            {
-                var player = players.Find(p => p.playerName == kvp.Key);
-                if (player != null)
-                {
-                    if (!player.totalPointsPerNight.ContainsKey(raceIndex))
-                        player.totalPointsPerNight[raceIndex] = 0;
-
-                    player.totalPointsPerNight[raceIndex] += kvp.Value;
-                }
-            }
-        }
-
-        public int CalculatePoints(GameMode mode, RacePick pick, List<string> results)
-        {
-            if (mode == GameMode.SinglePick)
-                return pick.racerName == results[0] ? 5 : 0;
-            else
-            {
-                if (pick.racerName == results[0]) return 5;
-                if (pick.racerName == results[1]) return 3;
-                if (pick.racerName == results[2]) return 1;
-                return 0;
-            }
-        }
-
-        // === LEADERBOARD METHODS ===
-        public List<(string playerName, int points)> GetTopThreeForNight(int nightIndex)
-        {
-            var scores = new Dictionary<string, int>();
-            var night = nights.Find(n => n.nightIndex == nightIndex);
-            if (night == null) return new List<(string, int)>();
-
-            foreach (var race in night.races)
-            {
-                foreach (var kvp in race.pointsAwarded)
-                {
-                    if (!scores.ContainsKey(kvp.Key))
-                        scores[kvp.Key] = 0;
-                    scores[kvp.Key] += kvp.Value;
-                }
-            }
-
-            var sorted = new List<(string, int)>();
-            foreach (var kvp in scores)
-                sorted.Add((kvp.Key, kvp.Value));
-
-            sorted.Sort((a, b) => b.Item2.CompareTo(a.Item2));
-            return sorted.GetRange(0, Mathf.Min(3, sorted.Count));
-        }
-
-        // === HELPERS ===
-        private RaceResult GetRace(int nightIndex, int raceIndex)
-        {
-            if (nightIndex < 0 || nightIndex >= nights.Count) return null;
-            var night = nights[nightIndex];
-            if (raceIndex < 0 || raceIndex >= night.races.Count) return null;
-            return night.races[raceIndex];
-        }
+    public void ClearSave()
+    {
+        PlayerPrefs.DeleteKey(SaveKey);
     }
 }
