@@ -7,11 +7,14 @@ public class PlayerPanelController : MonoBehaviour
     [SerializeField] private UIManager ui;
     [SerializeField] private Transform playerListContent;
     [SerializeField] private GameObject playerButtonPrefab;
+    [SerializeField] private TMP_Text raceName;
 
     private void OnEnable() => Refresh();
 
     private void Refresh()
     {
+        var race = GameManager.I.GetSelectedRace();
+        raceName.text = race.displayName;
         foreach (Transform c in playerListContent) Destroy(c.gameObject);
         foreach (var p in GameManager.I.State.players)
         {

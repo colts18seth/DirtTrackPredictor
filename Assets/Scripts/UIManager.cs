@@ -24,7 +24,7 @@ public class UIManager : MonoBehaviour
         foreach (var go in map.Values)
         {
             go.SetActive(false);
-            Debug.Log($"map.value: {go}");
+            //Debug.Log($"map.value: {go}");
         }
     }
 
