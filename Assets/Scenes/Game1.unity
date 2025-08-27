@@ -1381,7 +1381,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 192918161}
   m_CullTransparentMesh: 1
-<<<<<<< HEAD
 --- !u!1 &198421574
 GameObject:
   m_ObjectHideFlags: 0
@@ -1593,8 +1592,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 203250804}
   m_CullTransparentMesh: 1
-=======
->>>>>>> 0c8b503e27743d7f29875f5f8f1cf1f9e811e33c
 --- !u!1 &205431724
 GameObject:
   m_ObjectHideFlags: 0
@@ -5366,11 +5363,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 725286194}
-<<<<<<< HEAD
-  - {fileID: 272493390}
-=======
-  - {fileID: 649671198}
->>>>>>> 0c8b503e27743d7f29875f5f8f1cf1f9e811e33c
   - {fileID: 2101731403}
   - {fileID: 1537330721}
   - {fileID: 1584215196}
@@ -7480,7 +7472,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1686997642}
   m_CullTransparentMesh: 1
-<<<<<<< HEAD
 --- !u!1 &1694956102
 GameObject:
   m_ObjectHideFlags: 0
@@ -7538,7 +7529,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Race X
+  m_text: Players
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -7617,8 +7608,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1694956102}
   m_CullTransparentMesh: 1
-=======
->>>>>>> 0c8b503e27743d7f29875f5f8f1cf1f9e811e33c
 --- !u!1 &1723307623
 GameObject:
   m_ObjectHideFlags: 0
@@ -8551,13 +8540,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ui: {fileID: 1947535641}
   playerListContent: {fileID: 1133491265}
-<<<<<<< HEAD
-  playerButtonPrefab: {fileID: 2374951530069417078, guid: e7aad043d890a444d91a00f288f45632, type: 3}
-  raceName: {fileID: 1694956104}
-=======
   playerButtonPrefab: {fileID: 2198042606655973897, guid: 8b5babc6d9dd5c64bba910e9e7b0563b, type: 3}
-  raceName: {fileID: 864032228}
->>>>>>> 0c8b503e27743d7f29875f5f8f1cf1f9e811e33c
+  raceName: {fileID: 1694956104}
 --- !u!1 &1855171082
 GameObject:
   m_ObjectHideFlags: 0
