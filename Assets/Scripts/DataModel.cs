@@ -16,6 +16,7 @@ public class Race
     public RaceType type;
     public Dictionary<string, List<int>> picksByPlayer = new();
     // key: playerName; value: selected starting positions (SinglePick: 1 entry; Top3: 3 entries)
+    public List<int> results = new();
 }
 
 [System.Serializable]

@@ -8,6 +8,7 @@ public class RacePanelController : MonoBehaviour
     [SerializeField] private TMP_Dropdown raceTypeDropdown;
     [SerializeField] private Transform raceListContent;
     [SerializeField] private GameObject raceButtonPrefab;
+    [SerializeField] private TMP_Text raceNightText;
 
     private void OnEnable() => RefreshList();
 
@@ -23,6 +24,9 @@ public class RacePanelController : MonoBehaviour
 
     private void RefreshList()
     {
+        var raceNightNumber = GameManager.I.State.currentNightIndex;
+        raceNightText.text = $"Event Night {raceNightNumber + 1}";
+
         foreach (Transform c in raceListContent) Destroy(c.gameObject);
         var night = GameManager.I.State.nights[GameManager.I.State.currentNightIndex];
 

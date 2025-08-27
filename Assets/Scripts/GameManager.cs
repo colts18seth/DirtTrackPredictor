@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
@@ -75,6 +76,13 @@ public class GameManager : MonoBehaviour
         race.picksByPlayer[playerName] = new List<int>(positions);
     }
 
+    public void SaveRaceResultsForSelected(List<int> positions)
+    {
+        var race = GetSelectedRace();
+        if (race == null) return;
+        race.results = new List<int>(positions);
+    }
+
     // Simple persistence for Resume (swap to proper save later)
     private const string SaveKey = "RacePredictor_EventState";
 
@@ -98,5 +106,14 @@ public class GameManager : MonoBehaviour
     public void ClearSave()
     {
         PlayerPrefs.DeleteKey(SaveKey);
+    }
+
+    internal bool HasPlayerPicked(Race race, Player p)
+    {
+        if (race == null || p == null || string.IsNullOrEmpty(p.name))
+            return false;
+        if (race.picksByPlayer.TryGetValue(p.name, out var picks))
+            return picks != null && picks.Count > 0;
+        return false;
     }
 }

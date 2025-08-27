@@ -14,13 +14,22 @@ public class PlayerPanelController : MonoBehaviour
     private void Refresh()
     {
         var race = GameManager.I.GetSelectedRace();
-        raceName.text = race.displayName;
+        if (race != null) raceName.text = race.displayName;
+       
         foreach (Transform c in playerListContent) Destroy(c.gameObject);
         foreach (var p in GameManager.I.State.players)
         {
             var go = Instantiate(playerButtonPrefab, playerListContent);
             var label = go.GetComponentInChildren<TMP_Text>();
             if (label) label.text = p.name;
+            // Find the PickedImage child
+            var pickedImage = go.transform.Find("PickedImage");
+            if (pickedImage != null)
+            {
+                // Enable the image only if the player has made a pick for the current race
+                bool hasPicked = race != null && GameManager.I.HasPlayerPicked(race, p);
+                pickedImage.gameObject.SetActive(hasPicked);
+            }
             var btn = go.GetComponent<Button>();
             if (btn) btn.onClick.AddListener(() =>
             {
@@ -29,6 +38,8 @@ public class PlayerPanelController : MonoBehaviour
             });
         }
     }
+
+    public void OnAddRaceResults() => ui.Show(PanelId.RaceResults_Panel);
 
     public void OnBack() => ui.Show(PanelId.Race_Panel);
 }
