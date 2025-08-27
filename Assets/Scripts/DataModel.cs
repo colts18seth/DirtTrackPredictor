@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-public enum RaceType { Heat, BMain, Feature }
+public enum RaceType { Qualifying, Heat, BMain, Feature }
 public enum GameMode { SinglePick, Top3 } // Expand later as needed
 
 [System.Serializable]
