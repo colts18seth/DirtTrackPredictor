@@ -27,10 +27,10 @@ public class AutoCellSize : MonoBehaviour
 
     private void UpdateCellSize()
     {
-        var race = GameManager.I.GetSelectedRace();
+        var race = GameManager.I?.GetSelectedRace();
         if (race == null) return;
 
-        int totalButtons = 20; // or dynamically count children if needed
+        //int totalButtons = 20; // or dynamically count children if needed
         int columns = 2;
         int rows = race.type == RaceType.Feature ? 10 : 5;
 

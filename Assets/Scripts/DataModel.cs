@@ -19,6 +19,8 @@ public class Race
     //public Dictionary<string, List<int>> picksByPlayer = new();
     // key: playerName; value: selected starting positions (SinglePick: 1 entry; Top3: 3 entries)
     public List<int> results = new();
+    // Quick-and-dirty runtime totals (consider moving to GameManager with serialization)
+    public Dictionary<string, int> _totals = new();
     // If you’re using Qualifying as a bonus:
     public int qualifyingWinnerCarNumber = -1;
 }

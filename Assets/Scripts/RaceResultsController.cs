@@ -8,6 +8,8 @@ public class RaceResultsController : MonoBehaviour
     [SerializeField] private UIManager ui;
     [SerializeField] private Transform positionsContent;
     [SerializeField] private GameObject positionButtonPrefab;
+    [SerializeField] private TMP_InputField Invert_Input ;
+    [SerializeField] private TMP_Text feedback; // optional console text
 
     private readonly List<int> currentSelection = new();
 
@@ -88,10 +90,57 @@ public class RaceResultsController : MonoBehaviour
 
     public void OnSave()
     {
+        //var invert = Invert_Input.GetComponentInChildren<TMP_Text>();
         GameManager.I.SaveRaceResultsForSelected(currentSelection);
-
+        OnComputeScores();
         GameManager.I.Save();
         Debug.Log($"Saved picks: {string.Join(", ", currentSelection)}");
         ui.Show(PanelId.Race_Panel);
+
+    }
+
+    public void OnComputeScores()
+    {
+        var s = GameManager.I.State;
+        var night = s.nights[s.currentNightIndex];
+        var race = night.races[s.selectedRaceIndex ?? 0];
+
+        race.results.Clear();
+        if (currentSelection[0] > 0 ) race.results.Add(currentSelection[0]);
+        if (currentSelection[1] > 0) race.results.Add(currentSelection[1]);
+        if (currentSelection[2] > 0) race.results.Add(currentSelection[2]);
+
+        race.invertCount = int.TryParse(Invert_Input.text, out int inv) ? Mathf.Max(0, inv) : 0;
+
+        // Score all players for this race
+        Dictionary<string, int> points = ScoreManager.I.ScoreCurrentRace(s);
+
+        // Optionally accumulate to event totals (simple runtime example)
+        foreach (var kv in points)
+            AddToEventTotal(kv.Key, kv.Value);
+
+        GameManager.I.Save();
+
+        if (feedback)
+        {
+            feedback.text = $"Scored {race.displayName}:\n";
+            foreach (var kv in points)
+                feedback.text += $"{kv.Key}: {kv.Value}\n";
+        }
+        Debug.Log($"Scored {race.displayName}:\n");
+        foreach (var kv in points)
+            Debug.Log($"{kv.Key}: {kv.Value}");
+    }
+
+    private void AddToEventTotal(string player, int delta)
+    {
+        var race = GameManager.I.GetSelectedRace();
+        if (race == null) return;
+
+        // Store totals in a serializable way if you want persistence (e.g., a list on EventState).
+        // For simplicity here, we’ll keep it transient on GameManager; adapt to your save system as needed.
+        if (race._totals.TryGetValue(player, out int cur)) cur = 0;
+        race._totals[player] = cur + delta;
     }
 }
+
