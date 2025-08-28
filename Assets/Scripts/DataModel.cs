@@ -14,9 +14,20 @@ public class Race
 {
     public string displayName;         // e.g., "Heat 1"
     public RaceType type;
-    public Dictionary<string, List<int>> picksByPlayer = new();
+    public int invertCount;
+    public List<PlayerPicks> picks = new();
+    //public Dictionary<string, List<int>> picksByPlayer = new();
     // key: playerName; value: selected starting positions (SinglePick: 1 entry; Top3: 3 entries)
     public List<int> results = new();
+    // If you’re using Qualifying as a bonus:
+    public int qualifyingWinnerCarNumber = -1;
+}
+
+[System.Serializable]
+public class PlayerPicks
+{
+    public string playerName; 
+    public List<int> positions = new(); 
 }
 
 [System.Serializable]

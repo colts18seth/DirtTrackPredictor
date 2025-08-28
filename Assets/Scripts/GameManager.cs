@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -72,9 +73,38 @@ public class GameManager : MonoBehaviour
     public void SavePicksForSelected(string playerName, List<int> positions)
     {
         var race = GetSelectedRace();
-        if (race == null) return;
-        race.picksByPlayer[playerName] = new List<int>(positions);
+        if (race == null || string.IsNullOrEmpty(playerName))
+            return;
+
+        // Find existing entry
+        var playerPicks = race.picks.FirstOrDefault(pp => pp.playerName == playerName);
+
+        if (playerPicks == null)
+        {
+            // Create a new entry if not found
+            playerPicks = new PlayerPicks { playerName = playerName };
+            race.picks.Add(playerPicks);
+        }
+
+        // Overwrite the picks list with the new positions
+        playerPicks.positions = new List<int>(positions);
     }
+
+    public PlayerPicks GetOrCreatePicks(string playerName)
+    {
+        var race = GetSelectedRace();
+        var existing = race.picks.FirstOrDefault(pp => pp.playerName == playerName);
+        if (existing == null)
+        {
+            existing = new PlayerPicks { playerName = playerName };
+            race.picks.Add(existing);
+        }
+        return existing;
+    }
+
+
+
+
 
     public void SaveRaceResultsForSelected(List<int> positions)
     {
@@ -112,8 +142,9 @@ public class GameManager : MonoBehaviour
     {
         if (race == null || p == null || string.IsNullOrEmpty(p.name))
             return false;
-        if (race.picksByPlayer.TryGetValue(p.name, out var picks))
-            return picks != null && picks.Count > 0;
-        return false;
+
+        var playerPicks = race.picks.FirstOrDefault(pp => pp.playerName == p.name);
+        return playerPicks != null && playerPicks.positions != null && playerPicks.positions.Count > 0;
     }
+
 }
