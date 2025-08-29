@@ -2147,9 +2147,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nightContent: {fileID: 0}
   eventContent: {fileID: 0}
-  rowPrefab: {fileID: 0}
+  leaderboardRowPrefab: {fileID: 0}
+  breakdownContent: {fileID: 0}
+  breakdownRowPrefab: {fileID: 0}
+  breakdownHeader: {fileID: 0}
   nightDropdown: {fileID: 0}
-  onlyScoredToggle: {fileID: 0}
+  nightHeader: {fileID: 0}
+  onlyScoredRaces: 1
 --- !u!1 &350401395
 GameObject:
   m_ObjectHideFlags: 0
@@ -2338,6 +2342,7 @@ MonoBehaviour:
   positionsContent: {fileID: 980998311}
   positionButtonPrefab: {fileID: 5450662029231562618, guid: f82beb63841994441ac0c9a8477722fa, type: 3}
   header: {fileID: 1941793124}
+  overrideMaxPicks: 0
 --- !u!1 &387772890
 GameObject:
   m_ObjectHideFlags: 0
@@ -9403,10 +9408,22 @@ PrefabInstance:
     - target: {fileID: 4261528100739651191, guid: 6de9c4cf2eec988498529cf0da2bee58, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1267633750}
+      objectReference: {fileID: 1267633751}
     - target: {fileID: 4261528100739651191, guid: 6de9c4cf2eec988498529cf0da2bee58, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4261528100739651191, guid: 6de9c4cf2eec988498529cf0da2bee58, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnClickResume
+      objectReference: {fileID: 0}
+    - target: {fileID: 4261528100739651191, guid: 6de9c4cf2eec988498529cf0da2bee58, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MainMenuController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 4261528100739651191, guid: 6de9c4cf2eec988498529cf0da2bee58, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 6722075665446634894, guid: 6de9c4cf2eec988498529cf0da2bee58, type: 3}
       propertyPath: m_Pivot.x

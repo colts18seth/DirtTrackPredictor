@@ -213,9 +213,9 @@ public class GameManager : MonoBehaviour
         GameManager.I.UpdateEventTotals(dict);
 
 
-        //Debug.Log($"Scored {race.displayName}:\n");
-        //foreach (var kv in dict)
-        //Debug.Log($"{kv.Key}: {kv.Value}");
+        UnityEngine.Debug.Log($"Scored {race.displayName}:\n");
+        foreach (var kv in dict)
+        UnityEngine.Debug.Log($"{kv.Key}: {kv.Value}");
 
         //Save();
     }

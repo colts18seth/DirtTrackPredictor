@@ -5,40 +5,52 @@ using UnityEngine.UI;
 
 public class PickPanelController : MonoBehaviour
 {
+    [Header("UI References")]
     [SerializeField] private UIManager ui;
     [SerializeField] private Transform positionsContent;
     [SerializeField] private GameObject positionButtonPrefab;
     [SerializeField] private TMP_Text header;
 
+    [Header("Settings")]
+    [SerializeField] private int overrideMaxPicks = 0; // 0 = use GameManager mode
+
     private readonly List<int> currentSelection = new();
+    private readonly List<(int pos, Button btn)> buttons = new();
     private int maxPicks;
 
     private void OnEnable()
     {
         if (GameManager.I.ArePicksLocked())
         {
-            //ui.ShowMessage("Picks for this race are locked — results have been entered.");
             ui.Show(PanelId.Player_Panel);
             return;
         }
 
         currentSelection.Clear();
         currentSelection.AddRange(GameManager.I.GetActivePlayerPicks());
+
         BuildChoices();
     }
 
     private void BuildChoices()
     {
+        // Clear old buttons
         foreach (Transform c in positionsContent) Destroy(c.gameObject);
+        buttons.Clear();
 
         var race = GameManager.I.GetSelectedRace();
         if (race == null) return;
 
-        int count = race.type == RaceType.Feature ? 20 : 10;
+        // Determine max picks
         var mode = GameManager.I.State.mode;
-        maxPicks = mode == GameMode.Top3 ? 3 : 1;
+        maxPicks = overrideMaxPicks > 0
+            ? overrideMaxPicks
+            : (mode == GameMode.Top3 ? 3 : 1);
 
-        if (header) header.text = $"{race.displayName} — pick up to {maxPicks}";
+        if (header)
+            header.text = $"{race.displayName} — pick up to {maxPicks}";
+
+        int count = race.type == RaceType.Feature ? 20 : 10;
 
         for (int i = 1; i <= count; i++)
         {
@@ -48,44 +60,65 @@ public class PickPanelController : MonoBehaviour
             if (label) label.text = pos.ToString();
 
             var btn = go.GetComponent<Button>();
-            RefreshButtonVisual(btn, pos);
-
-            btn.onClick.AddListener(() =>
+            if (btn != null)
             {
-                TogglePick(pos, btn);
-            });
+                btn.onClick.AddListener(() => TogglePick(pos));
+                buttons.Add((pos, btn));
+            }
         }
+
+        RefreshAllButtonVisuals();
     }
 
-    private void TogglePick(int pos, Button btn)
+    private void TogglePick(int pos)
     {
         if (currentSelection.Contains(pos))
+        
             currentSelection.Remove(pos);
+        
         else
         {
             if (currentSelection.Count >= maxPicks) return;
             currentSelection.Add(pos);
         }
 
-        RefreshButtonVisual(btn, pos);
+        RefreshAllButtonVisuals();
     }
 
-    private void RefreshButtonVisual(Button btn, int pos)
+
+    private void RefreshAllButtonVisuals()
     {
-        bool picked = currentSelection.Contains(pos);
-        UIHighlightHelper.ApplyPickHighlight(btn, picked);
+        foreach (Transform child in positionsContent)
+        {
+            var btn = child.GetComponent<Button>();
+            var label = child.GetComponentInChildren<TMP_Text>();
+
+            if (btn != null && label != null && int.TryParse(label.text, out int pos))
+            {
+                // Apply highlight based on current pick order
+                UIHighlightHelper.ApplyPickHighlight(btn, pos, currentSelection);
+
+                // Keep buttons interactable so players can unpick
+                btn.interactable = true;
+            }
+        }
     }
+
+
+
+    public List<int> GetCurrentSelection() => new List<int>(currentSelection);
 
     public void OnBackSave()
     {
         if (currentSelection.Count == 0)
         {
             Debug.LogWarning("No picks selected.");
-            // Optional: prompt user
+            // Optional: prompt user here
         }
 
         GameManager.I.SaveActivePlayerPicks(currentSelection);
         GameManager.I.Save();
+
         Debug.Log($"Saved picks for {GameManager.I.State.selectedPlayerName}: {string.Join(", ", currentSelection)}");
         ui.Show(PanelId.Player_Panel);
     }
