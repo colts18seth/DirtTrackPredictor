@@ -15,18 +15,30 @@ public class PlayerPanelController : MonoBehaviour
     {
         var race = GameManager.I.GetSelectedRace();
         if (race != null) raceName.text = race.displayName;
-       
+
         foreach (Transform c in playerListContent) Destroy(c.gameObject);
         foreach (var p in GameManager.I.State.players)
         {
             var go = Instantiate(playerButtonPrefab, playerListContent);
             var label = go.GetComponentInChildren<TMP_Text>();
             if (label) label.text = p.name;
-            // Find the PickedImage child
+            var scoreText = go.transform.Find("Score_Text")?.GetComponent<TMP_Text>();
+            if (scoreText != null)
+            {
+                if (!race.picksLocked)
+                {
+                    scoreText.text = GameManager.I.GetPlayerNightTotal(p.name, true).ToString();
+                }
+                else
+                {
+                    scoreText.text = race._totals.TryGetValue(p.name, out int pts) ? pts.ToString() : "0";
+                }
+            }
+            // Find the PickedImage child  
             var pickedImage = go.transform.Find("PickedImage");
             if (pickedImage != null)
             {
-                // Enable the image only if the player has made a pick for the current race
+                // Enable the image only if the player has made a pick for the current race  
                 bool hasPicked = race != null && GameManager.I.HasPlayerPicked(race, p);
                 pickedImage.gameObject.SetActive(hasPicked);
             }

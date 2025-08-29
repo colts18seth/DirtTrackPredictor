@@ -36,9 +36,6 @@ public class Race
     public bool picksLocked; // New
 }
 
-
-
-
 [System.Serializable]
 public class PlayerPicks
 {

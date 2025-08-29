@@ -211,13 +211,27 @@ public class GameManager : MonoBehaviour
         }).ToList();
 
         GameManager.I.UpdateEventTotals(dict);
+        foreach (var kv in dict)
+            AddToEventTotal(kv.Key, kv.Value);
 
 
-        //Debug.Log($"Scored {race.displayName}:\n");
-        //foreach (var kv in dict)
-        //Debug.Log($"{kv.Key}: {kv.Value}");
+        UnityEngine.Debug.Log($"Scored {race.displayName}:\n");
+        foreach (var kv in dict) UnityEngine.Debug.Log($"{kv.Key}: {kv.Value}");
 
         //Save();
+    }
+
+    private void AddToEventTotal(string player, int delta)
+    {
+        var race = GameManager.I.GetSelectedRace();
+        if (race == null) return;
+
+        // Store totals in a serializable way if you want persistence (e.g., a list on EventState).
+        // For simplicity here, we’ll keep it transient on GameManager; adapt to your save system as needed.
+        if (!race._totals.TryGetValue(player, out int cur))
+            cur = 0;
+        race._totals[player] = cur + delta;
+
     }
 
     // Aggregate totals for a single night (sum all races in that night)
@@ -307,5 +321,48 @@ public class GameManager : MonoBehaviour
             .ToList();
     }
 
+    public List<PlayerTotal> GetNightTotalsSorted(int nightIndex, bool onlyScoredRaces = true)
+    {
+        var totals = new Dictionary<string, int>();
+        if (State == null || State.nights == null || nightIndex < 0 || nightIndex >= State.nights.Count)
+            return new List<PlayerTotal>();
 
+        var night = State.nights[nightIndex];
+        foreach (var race in night.races)
+        {
+            if (onlyScoredRaces && (race.scores == null || race.scores.Count == 0)) continue;
+
+            if (race.scores == null) continue;
+            foreach (var ps in race.scores)
+            {
+                if (!totals.ContainsKey(ps.playerName)) totals[ps.playerName] = 0;
+                totals[ps.playerName] += ps.points;
+            }
+        }
+
+        return totals
+            .Select(kv => new PlayerTotal { playerName = kv.Key, points = kv.Value })
+            .OrderByDescending(pt => pt.points)
+            .ThenBy(pt => pt.playerName)
+            .ToList();
+    }
+
+    public int GetPlayerNightTotal(string playerName, bool onlyScoredRaces = true)
+    {
+        if (State == null || State.nights == null || State.currentNightIndex < 0 || State.currentNightIndex >= State.nights.Count)
+            return 0;
+
+        int total = 0;
+        var night = State.nights[State.currentNightIndex];
+        foreach (var race in night.races)
+        {
+            if (onlyScoredRaces && (race.scores == null || race.scores.Count == 0)) continue;
+            if (race.scores == null) continue;
+
+            var score = race.scores.FirstOrDefault(ps => ps.playerName == playerName);
+            if (score != null)
+                total += score.points;
+        }
+        return total;
+    }
 }
