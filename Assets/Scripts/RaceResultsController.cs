@@ -120,7 +120,7 @@ public class RaceResultsController : MonoBehaviour
 
         // Optionally refresh leaderboard if you have a reference
 
-        ui.Show(PanelId.Race_Panel);
+        ui.Show(PanelId.Player_Panel);
     }
 
 
