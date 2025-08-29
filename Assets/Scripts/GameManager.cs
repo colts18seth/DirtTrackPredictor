@@ -102,17 +102,13 @@ public class GameManager : MonoBehaviour
         return existing;
     }
 
-
-
-
-
     public void SaveRaceResultsForSelected(List<int> positions )
     {
         var race = GetSelectedRace();
         if (race == null) return;
         race.results = new List<int>(positions);
-        //race.invertCount = invert;
     }
+
 
     // Simple persistence for Resume (swap to proper save later)
     private const string SaveKey = "RacePredictor_EventState";

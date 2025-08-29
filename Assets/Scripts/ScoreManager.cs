@@ -77,7 +77,8 @@ public class ScoreManager : MonoBehaviour
 
         foreach (var p in s.players)
         {
-            var picks = GetPicksForPlayer(race, p.name);
+            var picks = GetPicksForPlayer(race, p.name) ?? new List<int>();
+
             int pts = 0;
 
             if (race.type == RaceType.Qualifying)

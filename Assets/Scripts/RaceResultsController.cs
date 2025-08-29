@@ -91,7 +91,7 @@ public class RaceResultsController : MonoBehaviour
     public void OnSave()
     {
         //var invert = Invert_Input.GetComponentInChildren<TMP_Text>();
-        GameManager.I.SaveRaceResultsForSelected(currentSelection);
+        GameManager.I.SaveRaceResultsForSelected( currentSelection );
         OnComputeScores();
         GameManager.I.Save();
         Debug.Log($"Saved picks: {string.Join(", ", currentSelection)}");
@@ -106,9 +106,12 @@ public class RaceResultsController : MonoBehaviour
         var race = night.races[s.selectedRaceIndex ?? 0];
 
         race.results.Clear();
-        if (currentSelection[0] > 0 ) race.results.Add(currentSelection[0]);
-        if (currentSelection[1] > 0) race.results.Add(currentSelection[1]);
-        if (currentSelection[2] > 0) race.results.Add(currentSelection[2]);
+        for (int i = 0; i < currentSelection.Count && i < 3; i++)
+        {
+            if (currentSelection[i] > 0)
+                race.results.Add(currentSelection[i]);
+        }
+
 
         race.invertCount = int.TryParse(Invert_Input.text, out int inv) ? Mathf.Max(0, inv) : 0;
 
@@ -139,8 +142,10 @@ public class RaceResultsController : MonoBehaviour
 
         // Store totals in a serializable way if you want persistence (e.g., a list on EventState).
         // For simplicity here, we’ll keep it transient on GameManager; adapt to your save system as needed.
-        if (race._totals.TryGetValue(player, out int cur)) cur = 0;
+        if (!race._totals.TryGetValue(player, out int cur))
+            cur = 0;
         race._totals[player] = cur + delta;
+
     }
 }
 
