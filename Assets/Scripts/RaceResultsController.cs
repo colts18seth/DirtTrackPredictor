@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -88,16 +89,40 @@ public class RaceResultsController : MonoBehaviour
         }
     }
 
+    //public void OnSave()
+    //{
+    //    //var invert = Invert_Input.GetComponentInChildren<TMP_Text>();
+    //    GameManager.I.SaveRaceResultsForSelected( currentSelection );
+    //    OnComputeScores();
+    //    GameManager.I.LockPicksForSelectedRace();
+    //    GameManager.I.Save();
+    //    Debug.Log($"Saved picks: {string.Join(", ", currentSelection)}");
+    //    ui.Show(PanelId.Race_Panel);
+
+    //}
+
     public void OnSave()
     {
-        //var invert = Invert_Input.GetComponentInChildren<TMP_Text>();
-        GameManager.I.SaveRaceResultsForSelected( currentSelection );
-        OnComputeScores();
-        GameManager.I.Save();
-        Debug.Log($"Saved picks: {string.Join(", ", currentSelection)}");
-        ui.Show(PanelId.Race_Panel);
+        // Save picks for the active player if applicable (optional)
+        // GameManager.I.SaveActivePlayerPicks(currentSelection);
 
+        // Save race results and invert
+        int inv = int.TryParse(Invert_Input.text, out var invParsed) ? Mathf.Max(0, invParsed) : 0;
+        GameManager.I.SaveRaceResultsForSelected(currentSelection, inv);
+
+        // Compute per-race points and persist onto race.scores
+        GameManager.I.RecomputeAndPersistScoresForSelectedRace();
+
+        GameManager.I.LockPicksForSelectedRace();
+
+        // Persist state
+        GameManager.I.Save();
+
+        // Optionally refresh leaderboard if you have a reference
+
+        ui.Show(PanelId.Race_Panel);
     }
+
 
     public void OnComputeScores()
     {
@@ -130,9 +155,9 @@ public class RaceResultsController : MonoBehaviour
             foreach (var kv in points)
                 feedback.text += $"{kv.Key}: {kv.Value}\n";
         }
-        Debug.Log($"Scored {race.displayName}:\n");
-        foreach (var kv in points)
-            Debug.Log($"{kv.Key}: {kv.Value}");
+        //Debug.Log($"Scored {race.displayName}:\n");
+        //foreach (var kv in points)
+        //Debug.Log($"{kv.Key}: {kv.Value}");
     }
 
     private void AddToEventTotal(string player, int delta)

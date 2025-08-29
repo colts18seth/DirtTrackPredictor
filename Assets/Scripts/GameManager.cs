@@ -53,7 +53,7 @@ public class GameManager : MonoBehaviour
         return race;
     }
 
-    public Race? GetSelectedRace()
+    public Race GetSelectedRace()
     {
         var idx = State.selectedRaceIndex;
         if (idx == null) return null;
@@ -70,44 +70,76 @@ public class GameManager : MonoBehaviour
 
     public void SelectPlayer(string playerName) => State.selectedPlayerName = playerName;
 
-    public void SavePicksForSelected(string playerName, List<int> positions)
+    //public void SavePicksForSelected(string playerName, List<int> positions)
+    //{
+    //    var race = GetSelectedRace();
+    //    if (race == null || string.IsNullOrEmpty(playerName))
+    //        return;
+
+    //    // Find existing entry
+    //    var playerPicks = race.picks.FirstOrDefault(pp => pp.playerName == playerName);
+
+    //    if (playerPicks == null)
+    //    {
+    //        // Create a new entry if not found
+    //        playerPicks = new PlayerPicks { playerName = playerName };
+    //        race.picks.Add(playerPicks);
+    //    }
+
+    //    // Overwrite the picks list with the new positions
+    //    playerPicks.positions = new List<int>(positions);
+    //}
+
+    public void SaveActivePlayerPicks(IEnumerable<int> picks)
     {
         var race = GetSelectedRace();
-        if (race == null || string.IsNullOrEmpty(playerName))
-            return;
+        var player = State.selectedPlayerName;
+        if (race == null || string.IsNullOrEmpty(player)) return;
 
-        // Find existing entry
-        var playerPicks = race.picks.FirstOrDefault(pp => pp.playerName == playerName);
-
-        if (playerPicks == null)
-        {
-            // Create a new entry if not found
-            playerPicks = new PlayerPicks { playerName = playerName };
-            race.picks.Add(playerPicks);
-        }
-
-        // Overwrite the picks list with the new positions
-        playerPicks.positions = new List<int>(positions);
+        var existing = race.picks.FirstOrDefault(p => p.playerName == player);
+        if (existing != null)
+            existing.positions = new List<int>(picks);
+        else
+            race.picks.Add(new PlayerPicks(player, picks));
     }
 
-    public PlayerPicks GetOrCreatePicks(string playerName)
+    public List<int> GetActivePlayerPicks()
     {
         var race = GetSelectedRace();
-        var existing = race.picks.FirstOrDefault(pp => pp.playerName == playerName);
-        if (existing == null)
-        {
-            existing = new PlayerPicks { playerName = playerName };
-            race.picks.Add(existing);
-        }
-        return existing;
+        var player = State.selectedPlayerName;
+        if (race == null || string.IsNullOrEmpty(player)) return new List<int>();
+
+        var existing = race.picks.FirstOrDefault(p => p.playerName == player);
+        return existing != null ? new List<int>(existing.positions) : new List<int>();
     }
 
-    public void SaveRaceResultsForSelected(List<int> positions )
+    //public PlayerPicks GetOrCreatePicks(string playerName)
+    //{
+    //    var race = GetSelectedRace();
+    //    var existing = race.picks.FirstOrDefault(pp => pp.playerName == playerName);
+    //    if (existing == null)
+    //    {
+    //        existing = new PlayerPicks { playerName = playerName };
+    //        race.picks.Add(existing);
+    //    }
+    //    return existing;
+    //}
+
+    //public void SaveRaceResultsForSelected(List<int> positions )
+    //{
+    //    var race = GetSelectedRace();
+    //    if (race == null) return;
+    //    race.results = new List<int>(positions);
+    //}
+
+    public void SaveRaceResultsForSelected(List<int> positions, int invertCount)
     {
         var race = GetSelectedRace();
         if (race == null) return;
         race.results = new List<int>(positions);
+        race.invertCount = Mathf.Max(0, invertCount);
     }
+
 
 
     // Simple persistence for Resume (swap to proper save later)
@@ -143,5 +175,137 @@ public class GameManager : MonoBehaviour
         var playerPicks = race.picks.FirstOrDefault(pp => pp.playerName == p.name);
         return playerPicks != null && playerPicks.positions != null && playerPicks.positions.Count > 0;
     }
+
+    public void LockPicksForSelectedRace()
+    {
+        var race = GetSelectedRace();
+        if (race != null)
+            race.picksLocked = true;
+    }
+
+    public bool ArePicksLocked()
+    {
+        var race = GetSelectedRace();
+        return race != null && race.picksLocked;
+    }
+
+
+    // Call this after you’ve set race.results + race.invertCount + saved player picks.
+    public void RecomputeAndPersistScoresForSelectedRace()
+    {
+        var s = State;
+        if (s == null || s.selectedRaceIndex == null) return;
+
+        var night = s.nights[s.currentNightIndex];
+        var race = night.races[s.selectedRaceIndex.Value];
+        if (race == null) return;
+
+        // Compute points per player
+        var dict = ScoreManager.I.ScoreCurrentRace(s);
+
+        // Save them onto the race for persistence
+        race.scores = dict.Select(kv => new PlayerScore
+        {
+            playerName = kv.Key,
+            points = kv.Value
+        }).ToList();
+
+        GameManager.I.UpdateEventTotals(dict);
+
+
+        //Debug.Log($"Scored {race.displayName}:\n");
+        //foreach (var kv in dict)
+        //Debug.Log($"{kv.Key}: {kv.Value}");
+
+        //Save();
+    }
+
+    // Aggregate totals for a single night (sum all races in that night)
+    public List<PlayerScore> GetNightTotals(int nightIndex, bool onlyScoredRaces = true)
+    {
+        var scores = new Dictionary<string, int>();
+        if (State == null || State.nights == null || nightIndex < 0 || nightIndex >= State.nights.Count)
+            return new List<PlayerScore>();
+
+        var night = State.nights[nightIndex];
+        foreach (var race in night.races)
+        {
+            // Optionally skip races without saved scores
+            if (onlyScoredRaces && (race.scores == null || race.scores.Count == 0)) continue;
+
+            if (race.scores == null) continue;
+            foreach (var ps in race.scores)
+            {
+                if (!scores.ContainsKey(ps.playerName)) scores[ps.playerName] = 0;
+                scores[ps.playerName] += ps.points;
+            }
+        }
+
+        return scores
+            .Select(kv => new PlayerScore { playerName = kv.Key, points = kv.Value })
+            .OrderByDescending(ps => ps.points)
+            .ThenBy(ps => ps.playerName)
+            .ToList();
+    }
+
+    // Aggregate totals across all nights in the event
+    public List<PlayerScore> GetEventTotals(bool onlyScoredRaces = true)
+    {
+        var scores = new Dictionary<string, int>();
+        if (State == null || State.nights == null) return new List<PlayerScore>();
+
+        foreach (var night in State.nights)
+        {
+            foreach (var race in night.races)
+            {
+                if (onlyScoredRaces && (race.scores == null || race.scores.Count == 0)) continue;
+
+                if (race.scores == null) continue;
+                foreach (var ps in race.scores)
+                {
+                    if (!scores.ContainsKey(ps.playerName)) scores[ps.playerName] = 0;
+                    scores[ps.playerName] += ps.points;
+                }
+            }
+        }
+
+        return scores
+            .Select(kv => new PlayerScore { playerName = kv.Key, points = kv.Value })
+            .OrderByDescending(ps => ps.points)
+            .ThenBy(ps => ps.playerName)
+            .ToList();
+    }
+
+    public void UpdateEventTotals(Dictionary<string, int> latestRaceScores)
+    {
+        if (State == null) return;
+
+        // Ensure list exists
+        if (State.overallTotals == null)
+            State.overallTotals = new List<PlayerTotal>();
+
+        foreach (var kv in latestRaceScores)
+        {
+            var entry = State.overallTotals.FirstOrDefault(pt => pt.playerName == kv.Key);
+            if (entry == null)
+            {
+                entry = new PlayerTotal { playerName = kv.Key, points = kv.Value };
+                State.overallTotals.Add(entry);
+            }
+            else
+            {
+                entry.points += kv.Value;
+            }
+        }
+    }
+
+    public List<PlayerTotal> GetEventTotalsSorted()
+    {
+        return State.overallTotals
+            .OrderByDescending(pt => pt.points)
+            .ThenBy(pt => pt.playerName)
+            .ToList();
+    }
+
 
 }

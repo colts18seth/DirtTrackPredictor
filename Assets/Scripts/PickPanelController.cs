@@ -11,10 +11,19 @@ public class PickPanelController : MonoBehaviour
     [SerializeField] private TMP_Text header;
 
     private readonly List<int> currentSelection = new();
+    private int maxPicks;
 
     private void OnEnable()
     {
+        if (GameManager.I.ArePicksLocked())
+        {
+            //ui.ShowMessage("Picks for this race are locked — results have been entered.");
+            ui.Show(PanelId.Player_Panel);
+            return;
+        }
+
         currentSelection.Clear();
+        currentSelection.AddRange(GameManager.I.GetActivePlayerPicks());
         BuildChoices();
     }
 
@@ -27,7 +36,7 @@ public class PickPanelController : MonoBehaviour
 
         int count = race.type == RaceType.Feature ? 20 : 10;
         var mode = GameManager.I.State.mode;
-        int maxPicks = mode == GameMode.Top3 ? 3 : 1;
+        maxPicks = mode == GameMode.Top3 ? 3 : 1;
 
         if (header) header.text = $"{race.displayName} — pick up to {maxPicks}";
 
@@ -39,14 +48,16 @@ public class PickPanelController : MonoBehaviour
             if (label) label.text = pos.ToString();
 
             var btn = go.GetComponent<Button>();
+            RefreshButtonVisual(btn, pos);
+
             btn.onClick.AddListener(() =>
             {
-                TogglePick(pos, maxPicks, btn);
+                TogglePick(pos, btn);
             });
         }
     }
 
-    private void TogglePick(int pos, int maxPicks, Button btn)
+    private void TogglePick(int pos, Button btn)
     {
         if (currentSelection.Contains(pos))
             currentSelection.Remove(pos);
@@ -56,18 +67,26 @@ public class PickPanelController : MonoBehaviour
             currentSelection.Add(pos);
         }
 
-        // Simple visual: toggle interactable to reflect selection
-        btn.interactable = !currentSelection.Contains(pos);
+        RefreshButtonVisual(btn, pos);
+    }
+
+    private void RefreshButtonVisual(Button btn, int pos)
+    {
+        bool picked = currentSelection.Contains(pos);
+        UIHighlightHelper.ApplyPickHighlight(btn, picked);
     }
 
     public void OnBackSave()
     {
-        var player = GameManager.I.State.selectedPlayerName;
-        if (!string.IsNullOrEmpty(player))
-            GameManager.I.SavePicksForSelected(player, currentSelection);
+        if (currentSelection.Count == 0)
+        {
+            Debug.LogWarning("No picks selected.");
+            // Optional: prompt user
+        }
 
+        GameManager.I.SaveActivePlayerPicks(currentSelection);
         GameManager.I.Save();
-        Debug.Log($"Saved picks for {player}: {string.Join(", ", currentSelection)}");
+        Debug.Log($"Saved picks for {GameManager.I.State.selectedPlayerName}: {string.Join(", ", currentSelection)}");
         ui.Show(PanelId.Player_Panel);
     }
 }

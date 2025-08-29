@@ -136,4 +136,21 @@ public class ScoreManager : MonoBehaviour
         }
         return null;
     }
+
+    public int CalculateScoreForActivePlayer()
+    {
+        var picks = GameManager.I.GetActivePlayerPicks();
+        var race = GameManager.I.GetSelectedRace();
+        if (picks.Count == 0 || race == null) return 0;
+
+        int score = 0;
+        foreach (var pick in picks)
+        {
+            // Example: 1st place is worth 10, 2nd = 9, etc.
+            int points = Mathf.Max(0, 11 - pick);
+            score += points;
+        }
+        return score;
+    }
+
 }
