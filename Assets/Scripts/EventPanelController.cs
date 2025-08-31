@@ -44,4 +44,10 @@ public class EventPanelController : MonoBehaviour
         GameManager.I.Save();
         Debug.Log("Event finished. Totals calculation placeholder.");
     }
+
+    public void OnClickLeaderboard()
+    {
+        ui.Show(PanelId.LeaderBoard_Panel);
+    }
+
 }

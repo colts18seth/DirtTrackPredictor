@@ -5,54 +5,110 @@ using UnityEngine;
 
 public class LeaderboardController : MonoBehaviour
 {
-    [Header("Standings UI")]
-    [SerializeField] private Transform nightContent;         // rows use LeaderboardRowView
-    [SerializeField] private Transform eventContent;         // rows use LeaderboardRowView
-    [SerializeField] private GameObject leaderboardRowPrefab;
+    private enum ViewMode { NightStandings, EventStandings, Breakdown }
 
-    [Header("Breakdown UI")]
-    [SerializeField] private Transform breakdownContent;     // rows use BreakdownRowView
-    [SerializeField] private GameObject breakdownRowPrefab;
-    [SerializeField] private TMP_Text breakdownHeader;
+    [Header("Single Content Area")]
+    [SerializeField] private Transform contentParent;           // one content box for all views
+    [SerializeField] private TMP_Text headerText;               // shows current view title
 
-    [Header("Controls (Optional)")]
-    [SerializeField] private TMP_Dropdown nightDropdown;     // leave null to use current night
-    [SerializeField] private TMP_Text nightHeader;           // shows “Night X Standings”
-    [SerializeField] private bool onlyScoredRaces = true;    // filter for breakdown and night totals
+    [Header("Row Prefabs")]
+    [SerializeField] private GameObject leaderboardRowPrefab;   // LeaderboardRowView
+    [SerializeField] private GameObject breakdownRowPrefab;     // BreakdownRowView
+
+    [Header("Controls")]
+    [SerializeField] private TMP_Dropdown nightDropdown;        // optional: pick night index
+    [SerializeField] private bool onlyScoredRaces = true;       // filter for night totals and breakdown
+
+    private ViewMode currentMode = ViewMode.NightStandings;
+    private string currentBreakdownPlayer = null;
 
     private void OnEnable()
     {
         PopulateNightDropdownIfPresent();
-        Refresh();
+        // Default to current night standings when panel opens
+        ShowNightStandings();
     }
 
-    public void Refresh()
-    {
-        if (GameManager.I == null || GameManager.I.State == null) return;
+    // -------- Public UI Actions (bind these to buttons/tabs) --------
 
+    public void OnClickShowNightStandings()
+    {
+        ShowNightStandings();
+    }
+
+    public void OnClickShowEventStandings()
+    {
+        ShowEventStandings();
+    }
+
+    // Called by rows via callback to display per-race breakdown
+    private void OnRowClicked(string playerName)
+    {
+        ShowBreakdown(playerName);
+    }
+
+    // If using a dropdown, wire this in the Inspector
+    public void OnNightDropdownChanged(int _)
+    {
+        switch (currentMode)
+        {
+            case ViewMode.NightStandings:
+                ShowNightStandings();      // rebuild for new night
+                break;
+            case ViewMode.Breakdown:
+                ShowBreakdown(currentBreakdownPlayer); // rebuild breakdown with new night
+                break;
+            case ViewMode.EventStandings:
+                // Event standings do not depend on night
+                break;
+        }
+    }
+
+    // -------- View Builders --------
+
+    private void ShowNightStandings()
+    {
+        currentMode = ViewMode.NightStandings;
+        currentBreakdownPlayer = null;
+
+        ClearContent();
         int nightIndex = ResolveNightIndex();
 
-        // Night standings
         var nightTotals = GetNightTotals(nightIndex, onlyScoredRaces);
-        BuildStandingsList(nightContent, nightTotals);
+        BuildStandingsList(contentParent, nightTotals);
 
-        // Event standings (season totals)
-        var eventTotals = GameManager.I.GetEventTotalsSorted();
-        BuildStandingsList(eventContent, eventTotals);
-
-        // Optional headers
-        if (nightHeader) nightHeader.text = $"Night {nightIndex + 1} Standings";
-
-        // Clear breakdown on refresh
-        BuildBreakdown(null, nightIndex);
+        if (headerText) headerText.text = $"Night {nightIndex + 1} Standings";
     }
 
-    // --- Standings builders ---
+    private void ShowEventStandings()
+    {
+        currentMode = ViewMode.EventStandings;
+        currentBreakdownPlayer = null;
+
+        ClearContent();
+        var eventTotals = GameManager.I.GetEventTotalsSorted();
+        BuildStandingsList(contentParent, eventTotals);
+
+        if (headerText) headerText.text = "Season Standings";
+    }
+
+    private void ShowBreakdown(string playerName)
+    {
+        currentMode = ViewMode.Breakdown;
+        currentBreakdownPlayer = playerName;
+
+        ClearContent();
+        int nightIndex = ResolveNightIndex();
+        BuildBreakdown(contentParent, playerName, nightIndex);
+
+        if (headerText) headerText.text = $"{playerName} — Night {nightIndex + 1} Breakdown";
+    }
+
+    // -------- Internals --------
 
     private void BuildStandingsList(Transform parent, List<PlayerTotal> data)
     {
         if (!parent || leaderboardRowPrefab == null) return;
-        foreach (Transform c in parent) Destroy(c.gameObject);
 
         foreach (var row in data)
         {
@@ -60,12 +116,8 @@ public class LeaderboardController : MonoBehaviour
             var view = go.GetComponent<LeaderboardRowView>();
             if (view != null)
             {
-                // Clicking a player row shows breakdown for selected night
-                view.Set(row.playerName, row.points, playerName =>
-                {
-                    int nightIndex = ResolveNightIndex();
-                    BuildBreakdown(playerName, nightIndex);
-                });
+                // Clicking a row switches the single content box to Breakdown view
+                view.Set(row.playerName, row.points, OnRowClicked);
             }
             else
             {
@@ -80,24 +132,15 @@ public class LeaderboardController : MonoBehaviour
         }
     }
 
-    // --- Breakdown builder ---
-
-    private void BuildBreakdown(string playerName, int nightIndex)
+    private void BuildBreakdown(Transform parent, string playerName, int nightIndex)
     {
-        if (!breakdownContent || breakdownRowPrefab == null) return;
-        foreach (Transform c in breakdownContent) Destroy(c.gameObject);
-
-        if (string.IsNullOrEmpty(playerName))
-        {
-            if (breakdownHeader) breakdownHeader.text = "Select a player for per-race breakdown";
-            return;
-        }
+        if (!parent || breakdownRowPrefab == null) return;
+        if (string.IsNullOrEmpty(playerName)) return;
 
         var state = GameManager.I.State;
         if (state == null || nightIndex < 0 || nightIndex >= state.nights.Count) return;
 
         var night = state.nights[nightIndex];
-        if (breakdownHeader) breakdownHeader.text = $"{playerName} — Night {nightIndex + 1} Breakdown";
 
         // Build rows in race order
         foreach (var race in night.races)
@@ -112,10 +155,12 @@ public class LeaderboardController : MonoBehaviour
                 points = ps != null ? ps.points : 0;
             }
 
-            var go = Instantiate(breakdownRowPrefab, breakdownContent);
+            var go = Instantiate(breakdownRowPrefab, parent);
             var view = go.GetComponent<BreakdownRowView>();
             if (view != null)
+            {
                 view.Set(race.displayName, points);
+            }
             else
             {
                 var texts = go.GetComponentsInChildren<TMP_Text>();
@@ -128,8 +173,6 @@ public class LeaderboardController : MonoBehaviour
         }
     }
 
-    // --- Night totals ---
-
     private List<PlayerTotal> GetNightTotals(int nightIndex, bool onlyScored)
     {
         var totals = new Dictionary<string, int>();
@@ -140,8 +183,8 @@ public class LeaderboardController : MonoBehaviour
         foreach (var race in night.races)
         {
             if (onlyScored && (race.scores == null || race.scores.Count == 0)) continue;
-
             if (race.scores == null) continue;
+
             foreach (var ps in race.scores)
             {
                 if (!totals.ContainsKey(ps.playerName))
@@ -156,8 +199,6 @@ public class LeaderboardController : MonoBehaviour
             .ThenBy(pt => pt.playerName)
             .ToList();
     }
-
-    // --- Controls ---
 
     private int ResolveNightIndex()
     {
@@ -178,10 +219,14 @@ public class LeaderboardController : MonoBehaviour
             opts.Add($"Night {i + 1}");
         nightDropdown.AddOptions(opts);
 
-        nightDropdown.value = GameManager.I.State.currentNightIndex;
-        nightDropdown.onValueChanged.AddListener(_ =>
-        {
-            Refresh(); // also clears breakdown
-        });
+        nightDropdown.value = Mathf.Clamp(GameManager.I.State.currentNightIndex, 0, Mathf.Max(0, nights.Count - 1));
+        nightDropdown.onValueChanged.RemoveAllListeners();
+        nightDropdown.onValueChanged.AddListener(OnNightDropdownChanged);
+    }
+
+    private void ClearContent()
+    {
+        foreach (Transform c in contentParent)
+            Destroy(c.gameObject);
     }
 }
