@@ -31,9 +31,9 @@ public class PlayerPanelController : MonoBehaviour
                 }
                 else
                 {
+                    scoreText.text = race._totals.TryGetValue(p.name, out int pts) ? pts.ToString() : "0";
                     Button plrButton = go.GetComponent<Button>();
                     plrButton.interactable = false;
-                    scoreText.text = race._totals.TryGetValue(p.name, out int pts) ? pts.ToString() : "0";
                 }
             }
             // Find the PickedImage child  

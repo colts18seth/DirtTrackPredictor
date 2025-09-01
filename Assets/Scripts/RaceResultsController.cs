@@ -9,6 +9,7 @@ public class RaceResultsController : MonoBehaviour
     [SerializeField] private UIManager ui;
     [SerializeField] private Transform positionsContent;
     [SerializeField] private GameObject positionButtonPrefab;
+    [SerializeField] private ConfirmationDialog confirmDialog;
     [SerializeField] private TMP_InputField Invert_Input ;
     [SerializeField] private TMP_Text feedback; // optional console text
 
@@ -101,10 +102,25 @@ public class RaceResultsController : MonoBehaviour
 
     //}
 
+    public void OnClickSaveResults()
+    {
+        // Optional: validate inputs before showing dialog
+        // if (!IsResultsComplete()) { /* show message */ return; }
+
+        confirmDialog.Show(
+            "Are You Sure?",
+            onConfirm: OnSave,
+            onCancel: RefreshResultsPanel
+        );
+    }
+
+
     public void OnSave()
     {
         // Save picks for the active player if applicable (optional)
         // GameManager.I.SaveActivePlayerPicks(currentSelection);
+
+
 
         // Save race results and invert
         int inv = int.TryParse(Invert_Input.text, out var invParsed) ? Mathf.Max(0, invParsed) : 0;
