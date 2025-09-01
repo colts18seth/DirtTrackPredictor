@@ -149,7 +149,7 @@ GameObject:
   - component: {fileID: 5394190526106145755}
   - component: {fileID: 7362646083193687050}
   m_Layer: 5
-  m_Name: RemoveRaceButton
+  m_Name: RemoveButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
