@@ -1,4 +1,5 @@
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +10,8 @@ public class RacePanelController : MonoBehaviour
     [SerializeField] private Transform raceListContent;
     [SerializeField] private GameObject raceButtonPrefab;
     [SerializeField] private TMP_Text raceNightText;
+    [SerializeField] private Button AddRaceButton;
+    [SerializeField] private ConfirmationDialog confirmDialog;
 
     private void OnEnable() => RefreshList();
 
@@ -26,7 +29,11 @@ public class RacePanelController : MonoBehaviour
     {
         var raceNightNumber = GameManager.I.State.currentNightIndex;
         raceNightText.text = $"Event Night {raceNightNumber + 1}";
-
+        var currentnight = GameManager.I.State.nights[GameManager.I.State.currentNightIndex];
+        if (currentnight.finished != true)
+        {
+            AddRaceButton.interactable = true;
+        }
         foreach (Transform c in raceListContent) Destroy(c.gameObject);
         var night = GameManager.I.State.nights[GameManager.I.State.currentNightIndex];
 
@@ -50,11 +57,28 @@ public class RacePanelController : MonoBehaviour
 
     public void OnNightResults() => Debug.Log("Night results placeholder.");
 
+    public void OnClickConfirm()
+    {
+        // Optional: validate inputs before showing dialog
+        // if (!IsResultsComplete()) { /* show message */ return; }
+
+        confirmDialog.Show(
+            "Are You Sure?",
+            onConfirm: OnFinishNight,
+            onCancel: RefreshList
+        );
+    }
+
     public void OnFinishNight()
     {
         var night = GameManager.I.State.nights[GameManager.I.State.currentNightIndex];
         night.finished = true;
         GameManager.I.Save();
+        if (AddRaceButton != null)
+        {
+            AddRaceButton.interactable = false; 
+        }
+
         ui.Show(PanelId.Event_Panel);
     }
 }
