@@ -31,6 +31,8 @@ public class PlayerPanelController : MonoBehaviour
                 }
                 else
                 {
+                    Button plrButton = go.GetComponent<Button>();
+                    plrButton.interactable = false;
                     scoreText.text = race._totals.TryGetValue(p.name, out int pts) ? pts.ToString() : "0";
                 }
             }
@@ -51,7 +53,11 @@ public class PlayerPanelController : MonoBehaviour
         }
     }
 
-    public void OnAddRaceResults() => ui.Show(PanelId.RaceResults_Panel);
-
+    public void OnAddRaceResults()
+    {
+        if (GameManager.I.ArePicksLocked()) return;
+     
+        ui.Show(PanelId.RaceResults_Panel);
+    }
     public void OnBack() => ui.Show(PanelId.Race_Panel);
 }

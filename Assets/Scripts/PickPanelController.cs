@@ -20,11 +20,11 @@ public class PickPanelController : MonoBehaviour
 
     private void OnEnable()
     {
-        if (GameManager.I.ArePicksLocked())
-        {
-            ui.Show(PanelId.Player_Panel);
-            return;
-        }
+        //if (GameManager.I.ArePicksLocked())
+        //{
+        //    ui.Show(PanelId.Player_Panel);
+        //    return;
+        //}
 
         currentSelection.Clear();
         currentSelection.AddRange(GameManager.I.GetActivePlayerPicks());
