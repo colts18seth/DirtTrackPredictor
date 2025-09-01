@@ -64,28 +64,23 @@ public class RaceResultsController : MonoBehaviour
 
         btn.interactable = !currentSelection.Contains(pos);
 
-        RefreshResultsPanel();
+        RefreshAllButtonVisuals();
     }
 
-    private void RefreshResultsPanel()
+    private void RefreshAllButtonVisuals()
     {
-        foreach (Transform c in positionsContent)
+        foreach (Transform child in positionsContent)
         {
-            var btn = c.GetComponent<Button>();
-            var label = c.GetComponentInChildren<TMP_Text>();
-            if (btn && label && int.TryParse(label.text, out int pos))
+            var btn = child.GetComponent<Button>();
+            var label = child.GetComponentInChildren<TMP_Text>();
+
+            if (btn != null && label != null && int.TryParse(label.text, out int pos))
             {
-                int order = currentSelection.IndexOf(pos);
-                var colors = btn.colors;
-                if (order == 0)
-                    colors.disabledColor = GoldColor; // First place
-                else if (order == 1)
-                    colors.disabledColor = SilverColor;   // Second place
-                else if (order == 2)
-                    colors.disabledColor = BronzeColor;  // Third place
-                else
-                    colors.disabledColor = Color.white;  // Not selected
-                btn.colors = colors;
+                // Apply highlight based on current pick order
+                UIHighlightHelper.ApplyPickHighlight(btn, pos, currentSelection);
+
+                // Keep buttons interactable so players can unpick
+                btn.interactable = true;
             }
         }
     }
@@ -110,7 +105,7 @@ public class RaceResultsController : MonoBehaviour
         confirmDialog.Show(
             "Are You Sure?",
             onConfirm: OnSave,
-            onCancel: RefreshResultsPanel
+            onCancel: RefreshAllButtonVisuals
         );
     }
 
