@@ -32,18 +32,18 @@ public class EventPanelController : MonoBehaviour
         }
     }
 
-    public void OnClickFinalResults()
-    {
-        // TODO: Show results panel if you add one; for now, log
-        Debug.Log("Final results not implemented yet.");
-    }
-
     public void OnClickFinishEvent()
     {
-        // TODO: Aggregate totals across nights
+        // Save current state
         GameManager.I.Save();
-        Debug.Log("Event finished. Totals calculation placeholder.");
+
+        // Get sorted totals from GameManager
+        var sortedTotals = GameManager.I.GetEventTotalsSorted();
+
+        // Show the podium panel
+        ui.Show(PanelId.Podium_Panel);
     }
+
 
     public void OnClickLeaderboard()
     {

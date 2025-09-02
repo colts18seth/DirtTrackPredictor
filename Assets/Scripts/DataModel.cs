@@ -30,11 +30,15 @@ public class Race
     // Persisted, per-race points (one entry per player)
     public List<PlayerScore> scores = new();
 
+    // Qualifying-specific
+    public Dictionary<string, string> qualifyingPredictions = new(); // playerName  prediction
+    public string qualifyingResult; // actual pole sitter
+
+
     // Runtime-only cache (rebuilt from scores after load)
     [System.NonSerialized]
     public Dictionary<string, int> _totals = new();
 
-    public int qualifyingWinnerCarNumber = -1;
     public bool picksLocked;
 
     /// <summary>

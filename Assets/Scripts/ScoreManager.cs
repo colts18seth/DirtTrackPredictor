@@ -66,10 +66,17 @@ public class ScoreManager : MonoBehaviour
     }
 
     // QUALIFYING: exact match bonus
-    public int ScoreQualifying(int predictedCarNumber, int actualTopCarNumber)
+    public int ScoreQualifying(string predictedName, string actualName)
     {
-        return predictedCarNumber == actualTopCarNumber ? settings.qualifyingExactBonus : 0;
+        if (string.IsNullOrWhiteSpace(predictedName) || string.IsNullOrWhiteSpace(actualName))
+            return 0;
+
+        // Trim and compare ignoring case
+        return string.Equals(predictedName.Trim(), actualName.Trim(), System.StringComparison.OrdinalIgnoreCase)
+            ? settings.qualifyingExactBonus
+            : 0;
     }
+
 
     // Convenience: score the currently selected race for all players and return a per-player map
     public Dictionary<string, int> ScoreCurrentRace(EventState s)
@@ -88,9 +95,15 @@ public class ScoreManager : MonoBehaviour
 
             if (race.type == RaceType.Qualifying)
             {
-                // Expecting a single car number pick saved somewhere you choose
-                // pts = ScoreQualifying(predictedCarNumberForPlayer, race.qualifyingWinnerCarNumber);
+                // Get the player's prediction string if it exists
+                string predicted = null;
+                if (race.qualifyingPredictions != null)
+                    race.qualifyingPredictions.TryGetValue(p.name, out predicted);
+
+                // Compare to the actual qualifying result string
+                pts = ScoreQualifying(predicted, race.qualifyingResult);
             }
+
             else if (s.mode == GameMode.SinglePick)
             {
                 if (picks != null && picks.Count > 0)

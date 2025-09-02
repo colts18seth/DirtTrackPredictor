@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public enum PanelId { MainMenu_Panel, Setup_Panel, Event_Panel, Race_Panel, Player_Panel, Pick_Panel, RaceResults_Panel, LeaderBoard_Panel }
+public enum PanelId { MainMenu_Panel, Setup_Panel, Event_Panel, Race_Panel, Player_Panel, Pick_Panel, RaceResults_Panel, LeaderBoard_Panel, Podium_Panel }
 
 public class UIManager : MonoBehaviour
 {

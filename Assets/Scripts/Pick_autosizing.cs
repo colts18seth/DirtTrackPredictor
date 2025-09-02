@@ -17,6 +17,9 @@ public class AutoCellSize : MonoBehaviour
 
     private void OnEnable()
     {
+        if (grid == null) grid = GetComponent<GridLayoutGroup>();
+        if (rt == null) rt = GetComponent<RectTransform>();
+
         UpdateCellSize();
     }
 
@@ -27,7 +30,9 @@ public class AutoCellSize : MonoBehaviour
 
     private void UpdateCellSize()
     {
-        var race = GameManager.I?.GetSelectedRace();
+        if (GameManager.I == null) return; // GameManager not ready yet
+
+        var race = GameManager.I.GetSelectedRace();
         if (race == null) return;
 
         //int totalButtons = 20; // or dynamically count children if needed

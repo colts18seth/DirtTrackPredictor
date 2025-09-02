@@ -27,6 +27,8 @@ public class ConfirmationDialog : MonoBehaviour
 
         if (messageText) messageText.text = message;
 
+        if (root != null) root.SetActive(true);
+
         // Clean old listeners to avoid stacking
         if (confirmButton)
         {

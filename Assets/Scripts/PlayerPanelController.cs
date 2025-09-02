@@ -41,8 +41,28 @@ public class PlayerPanelController : MonoBehaviour
             if (pickedImage != null)
             {
                 // Enable the image only if the player has made a pick for the current race  
-                bool hasPicked = race != null && GameManager.I.HasPlayerPicked(race, p);
+                bool hasPicked = false;
+
+                if (race != null)
+                {
+                    if (race.type == RaceType.Qualifying)
+                    {
+                        // Check if a qualifying prediction exists for this player
+                        if (race.qualifyingPredictions != null &&
+                            race.qualifyingPredictions.TryGetValue(p.name, out var qualPick) &&
+                            !string.IsNullOrWhiteSpace(qualPick))
+                        {
+                            hasPicked = true;
+                        }
+                    }
+                    else
+                    {
+                        // Normal race pick check
+                        hasPicked = GameManager.I.HasPlayerPicked(race, p);
+                    }
+                }
                 pickedImage.gameObject.SetActive(hasPicked);
+
             }
             var btn = go.GetComponent<Button>();
             if (btn) btn.onClick.AddListener(() =>

@@ -101,7 +101,7 @@ public class LeaderboardController : MonoBehaviour
         int nightIndex = ResolveNightIndex();
         BuildBreakdown(contentParent, playerName, nightIndex);
 
-        if (headerText) headerText.text = $"{playerName} — Night {nightIndex + 1} Breakdown";
+        if (headerText) headerText.text = $"{playerName} Night {nightIndex + 1} Breakdown";
     }
 
     // -------- Internals --------

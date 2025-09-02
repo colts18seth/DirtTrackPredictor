@@ -12,18 +12,30 @@ public class RaceResultsController : MonoBehaviour
     [SerializeField] private ConfirmationDialog confirmDialog;
     [SerializeField] private TMP_InputField Invert_Input ;
     [SerializeField] private TMP_Text feedback; // optional console text
+    [SerializeField] private TMP_InputField qualifyingResultInput;
+    [SerializeField] private TMP_Text header;
 
     private readonly List<int> currentSelection = new();
 
     private static readonly Color GoldColor = new Color(1.0f, 0.843f, 0.0f);
     private static readonly Color SilverColor = new Color(0.60f, 0.60f, 0.60f);
     private static readonly Color BronzeColor = new Color(0.8f, 0.5f, 0.2f);
-
+    private Race currentRace;
 
     private void OnEnable()
     {
-        currentSelection.Clear();
-        BuildResultsChoices();
+        var race = GameManager.I.GetSelectedRace();
+        if (race != null && race.type == RaceType.Qualifying)
+        {
+            qualifyingResultInput.gameObject.SetActive(true);
+            qualifyingResultInput.text = race.qualifyingResult ?? "";
+        }
+        else
+        {
+            qualifyingResultInput.gameObject.SetActive(false);
+            currentSelection.Clear();
+            BuildResultsChoices();
+        }
     }
 
     private void BuildResultsChoices()
@@ -32,6 +44,16 @@ public class RaceResultsController : MonoBehaviour
 
         var race = GameManager.I.GetSelectedRace();
         if (race == null) return;
+
+        // If qualifying, skip building position buttons
+        if (race.type == RaceType.Qualifying)
+        {
+            if (header) header.text = $"{race.displayName} : enter pole sitter";
+            return;
+        }
+
+        if (header)
+            header.text = $"{race.displayName} Results";
 
         int count = race.type == RaceType.Feature ? 20 : 10;
         var mode = GameManager.I.State.mode;
@@ -108,6 +130,15 @@ public class RaceResultsController : MonoBehaviour
         // Save race results and invert
         int inv = int.TryParse(Invert_Input.text, out var invParsed) ? Mathf.Max(0, invParsed) : 0;
         GameManager.I.SaveRaceResultsForSelected(currentSelection, inv);
+
+        var race = GameManager.I.GetSelectedRace();
+        if (race != null && race.type == RaceType.Qualifying)
+        {
+            race.qualifyingResult = qualifyingResultInput.text.Trim();
+            UnityEngine.Debug.Log($"Saved result is  {race.qualifyingResult}");
+        }
+
+
 
         // Compute per-race points and persist onto race.scores
         GameManager.I.RecomputeAndPersistScoresForSelectedRace();

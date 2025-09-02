@@ -48,4 +48,4 @@ MonoBehaviour:
     m_RotationOrder: 4
   poleBoostPerInvert: 0.02
   invertAdjustedMax: 2.5
-  qualifyingExactBonus: 5
+  qualifyingExactBonus: 15
