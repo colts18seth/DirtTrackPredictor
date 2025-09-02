@@ -89,7 +89,7 @@ public class LeaderboardController : MonoBehaviour
         var eventTotals = GameManager.I.GetEventTotalsSorted();
         BuildStandingsList(contentParent, eventTotals);
 
-        if (headerText) headerText.text = "Season Standings";
+        if (headerText) headerText.text = "Event Standings";
     }
 
     private void ShowBreakdown(string playerName)

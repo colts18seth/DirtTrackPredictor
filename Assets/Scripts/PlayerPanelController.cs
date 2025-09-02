@@ -31,7 +31,7 @@ public class PlayerPanelController : MonoBehaviour
                 }
                 else
                 {
-                    scoreText.text = race._totals.TryGetValue(p.name, out int pts) ? pts.ToString() : "0";
+                    scoreText.text = race.GetPlayerPoints(p.name).ToString();
                     Button plrButton = go.GetComponent<Button>();
                     plrButton.interactable = false;
                 }

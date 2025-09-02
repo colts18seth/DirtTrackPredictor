@@ -183,5 +183,7 @@ public class RaceResultsController : MonoBehaviour
         race._totals[player] = cur + delta;
 
     }
+
+    public void OnBack() => ui.Show(PanelId.Player_Panel);
 }
 

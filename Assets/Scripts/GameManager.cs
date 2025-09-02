@@ -159,6 +159,14 @@ public class GameManager : MonoBehaviour
         var loaded = JsonUtility.FromJson<EventState>(json);
         if (loaded == null) return false;
         State = loaded;
+        foreach (var night in State.nights)
+        {
+            foreach (var race in night.races)
+            {
+                race.RebuildTotals();
+            }
+        }
+
         return true;
     }
 
