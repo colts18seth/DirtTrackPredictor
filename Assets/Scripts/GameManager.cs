@@ -70,26 +70,6 @@ public class GameManager : MonoBehaviour
 
     public void SelectPlayer(string playerName) => State.selectedPlayerName = playerName;
 
-    //public void SavePicksForSelected(string playerName, List<int> positions)
-    //{
-    //    var race = GetSelectedRace();
-    //    if (race == null || string.IsNullOrEmpty(playerName))
-    //        return;
-
-    //    // Find existing entry
-    //    var playerPicks = race.picks.FirstOrDefault(pp => pp.playerName == playerName);
-
-    //    if (playerPicks == null)
-    //    {
-    //        // Create a new entry if not found
-    //        playerPicks = new PlayerPicks { playerName = playerName };
-    //        race.picks.Add(playerPicks);
-    //    }
-
-    //    // Overwrite the picks list with the new positions
-    //    playerPicks.positions = new List<int>(positions);
-    //}
-
     public void SaveActivePlayerPicks(IEnumerable<int> picks)
     {
         var race = GetSelectedRace();
@@ -112,25 +92,6 @@ public class GameManager : MonoBehaviour
         var existing = race.picks.FirstOrDefault(p => p.playerName == player);
         return existing != null ? new List<int>(existing.positions) : new List<int>();
     }
-
-    //public PlayerPicks GetOrCreatePicks(string playerName)
-    //{
-    //    var race = GetSelectedRace();
-    //    var existing = race.picks.FirstOrDefault(pp => pp.playerName == playerName);
-    //    if (existing == null)
-    //    {
-    //        existing = new PlayerPicks { playerName = playerName };
-    //        race.picks.Add(existing);
-    //    }
-    //    return existing;
-    //}
-
-    //public void SaveRaceResultsForSelected(List<int> positions )
-    //{
-    //    var race = GetSelectedRace();
-    //    if (race == null) return;
-    //    race.results = new List<int>(positions);
-    //}
 
     public void SaveRaceResultsForSelected(List<int> positions, int invertCount)
     {

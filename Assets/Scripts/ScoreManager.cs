@@ -46,15 +46,20 @@ public class ScoreManager : MonoBehaviour
             int exactIdx = IndexOf(resultsTop3, picked);
             if (exactIdx == -1) continue;
 
-            int exactBonus = exactIdx switch
+            bool correctPlace = (exactIdx == i);
+
+            int exactBonus = correctPlace? (i switch
             {
                 0 => settings.top3ExactPlaceBonus1,
                 1 => settings.top3ExactPlaceBonus2,
                 2 => settings.top3ExactPlaceBonus3,
                 _ => 0
-            };
+            })
+            : 0; // No exact bonus if wrong slot
 
-            float mult = UnderdogMultiplier(picked, invertCount);
+
+
+        float mult = UnderdogMultiplier(picked, invertCount);
             total += Mathf.RoundToInt((settings.top3BasePoints + exactBonus) * mult);
         }
         return total;

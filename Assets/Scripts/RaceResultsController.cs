@@ -85,18 +85,6 @@ public class RaceResultsController : MonoBehaviour
         }
     }
 
-    //public void OnSave()
-    //{
-    //    //var invert = Invert_Input.GetComponentInChildren<TMP_Text>();
-    //    GameManager.I.SaveRaceResultsForSelected( currentSelection );
-    //    OnComputeScores();
-    //    GameManager.I.LockPicksForSelectedRace();
-    //    GameManager.I.Save();
-    //    Debug.Log($"Saved picks: {string.Join(", ", currentSelection)}");
-    //    ui.Show(PanelId.Race_Panel);
-
-    //}
-
     public void OnClickSaveResults()
     {
         // Optional: validate inputs before showing dialog
